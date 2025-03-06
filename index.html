@@ -1,22 +1,260 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ОКВЭД Поиск</title>
+    <title>OKVED Search</title>
     <style>
-        /* Добавьте стили по желанию */
+        #results {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
-    <div id="okvedForm">
-        <input type="text" id="classInput" placeholder="Класс (например, 10)">
-        <input type="text" id="subclassInput" placeholder="Подкласс (например, 10.1)" style="display: none;">
-        <input type="text" id="groupInput" placeholder="Группа (например, 10.11)" style="display: none;">
-        <input type="text" id="subgroupInput" placeholder="Подгруппа (например, 10.111)" style="display: none;">
-        <div id="searchResults"></div>
-    </div>
 
-    <script src="script.js"></script>
+    <h1>OKVED Live Search</h1>
+
+    <form id="okvedForm">
+        <label for="class">Class:</label>
+        <input type="text" id="class" name="class" maxlength="2"><br><br>
+
+        <label for="subclass">Subclass:</label>
+        <input type="text" id="subclass" name="subclass" maxlength="4"><br><br>
+
+        <label for="group">Group:</label>
+        <input type="text" id="group" name="group" maxlength="5"><br><br>
+
+        <label for="subgroup">Subgroup:</label>
+        <input type="text" id="subgroup" name="subgroup" maxlength="7"><br><br>
+
+        <label for="type">Type:</label>
+        <input type="text" id="type" name="type" maxlength="9"><br><br>
+    </form>
+
+    <div id="results"></div>
+
+    <script>
+        const okvedData = [
+  {
+    "code": "01",
+    "name": "Растениеводство и животноводство, охота и предоставление соответствующих услуг в этих областях",
+    "subclasses": [
+      {
+        "code": "01.1",
+        "name": "Выращивание однолетних культур",
+        "groups": [
+          {
+            "code": "01.11",
+            "name": "Выращивание зерновых (кроме риса), зернобобовых культур и семян масличных культур",
+            "subgroups": [
+              {
+                "code": "01.11.1",
+                "name": "Выращивание зерновых культур",
+                "types": [
+                    {
+                        "code": "01.11.11",
+                        "name": "Выращивание пшеницы",
+                    },
+                    {
+                         "code": "01.11.12",
+                        "name": "Выращивание ячменя",
+                    },
+                 ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+    {
+    "code": "02",
+    "name": "Лесоводство и лесозаготовки",
+    "subclasses": [
+      {
+        "code": "02.1",
+        "name": "Лесоводство и прочая деятельность, связанная с лесоводством",
+        "groups": [
+          {
+            "code": "02.10",
+            "name": "Лесоводство и прочая деятельность, связанная с лесоводством",
+            "subgroups": [
+              {
+                "code": "02.10.1",
+                "name": "Лесоводство",
+                "types": [
+                    {
+                        "code": "02.10.11",
+                        "name": "Выращивание посадочного материала лесных растений (саженцев, сеянцев)",
+                    }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+];
+
+        function searchOkved(level, query) {
+            const results = [];
+
+            function traverse(data, currentLevel) {
+                for (const item of data) {
+                    const code = item.code;
+                    if (currentLevel === "class" && code.startsWith(query)) {
+                       results.push({code: item.code, name: item.name});
+                    }
+                    
+                    if (currentLevel === "subclass" && code.startsWith(query)) {
+                       results.push({code: item.code, name: item.name});
+                    }
+
+                    if (currentLevel === "group" && code.startsWith(query)) {
+                        results.push({code: item.code, name: item.name});
+                     }
+                     
+                    if (currentLevel === "subgroup" && code.startsWith(query)) {
+                        results.push({code: item.code, name: item.name});
+                     }
+                    if (currentLevel === "type" && code.startsWith(query)) {
+                        results.push({code: item.code, name: item.name});
+                     }
+
+
+                    if (item.subclasses) {
+                        if (currentLevel === "subclass")
+                        {
+                            traverse(item.subclasses, currentLevel);
+                        }
+                        else if(currentLevel === "class")
+                        {
+                            traverse(item.subclasses, "subclass");
+                        }
+                    }
+                    
+                    if(item.groups){
+                         if(currentLevel === "group")
+                         {
+                             traverse(item.groups, currentLevel);
+                         }
+                         else if(currentLevel === "subclass")
+                         {
+                             traverse(item.groups, "group");
+                         }
+                    }
+
+                    if(item.subgroups){
+                        if(currentLevel === "subgroup")
+                        {
+                             traverse(item.subgroups, currentLevel);
+                        }
+                         else if(currentLevel === "group")
+                         {
+                             traverse(item.subgroups, "subgroup");
+                         }
+                    }
+
+                    if(item.types){
+                        if(currentLevel === "type")
+                        {
+                             traverse(item.types, currentLevel);
+                        }
+                         else if(currentLevel === "subgroup")
+                         {
+                             traverse(item.types, "type");
+                         }
+                     }
+                }
+            }
+
+            if (level === "class"){
+                traverse(okvedData, level);
+            }
+            else {
+                traverse(okvedData, level);
+            }
+
+            return results;
+        }
+
+        function displayResults(results) {
+            const resultsDiv = document.getElementById("results");
+            resultsDiv.innerHTML = "";
+
+            if (results.length === 0) {
+                resultsDiv.innerHTML = "<p>No results found.</p>";
+                return;
+            }
+
+            const ul = document.createElement("ul");
+            results.forEach(result => {
+                const li = document.createElement("li");
+                li.textContent = `${result.code}: ${result.name}`;
+                ul.appendChild(li);
+            });
+            resultsDiv.appendChild(ul);
+        }
+
+        const form = document.getElementById("okvedForm");
+        const classInput = document.getElementById("class");
+        const subclassInput = document.getElementById("subclass");
+        const groupInput = document.getElementById("group");
+        const subgroupInput = document.getElementById("subgroup");
+        const typeInput = document.getElementById("type");
+
+        classInput.addEventListener("input", () => {
+            const query = classInput.value;
+            if(query.length > 0){
+                const results = searchOkved("class", query);
+                displayResults(results);
+            }
+            else{
+                displayResults([]);
+            }
+        });
+
+        subclassInput.addEventListener("input", () => {
+            const query = subclassInput.value;
+           if(query.length > 0){
+                const results = searchOkved("subclass", query);
+                displayResults(results);
+            } else {
+                displayResults([]);
+            }
+        });
+
+        groupInput.addEventListener("input", () => {
+            const query = groupInput.value;
+            if(query.length > 0){
+               const results = searchOkved("group", query);
+               displayResults(results);
+            } else {
+                displayResults([]);
+            }
+        });
+
+        subgroupInput.addEventListener("input", () => {
+            const query = subgroupInput.value;
+           if(query.length > 0){
+              const results = searchOkved("subgroup", query);
+              displayResults(results);
+           } else {
+            displayResults([]);
+           }
+        });
+
+        typeInput.addEventListener("input", () => {
+            const query = typeInput.value;
+            if(query.length > 0){
+                const results = searchOkved("type", query);
+                displayResults(results);
+            } else {
+                 displayResults([]);
+            }
+        });
+
+    </script>
 </body>
 </html>
