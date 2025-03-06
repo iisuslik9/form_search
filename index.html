@@ -89,31 +89,37 @@
         function searchOkved(query) {
             const results = [];
 
-            function traverse(data) {
-              for (const item of data) {
-                // Check if the code starts with the query
-                if (item.code.startsWith(query)) {
-                  results.push({ code: item.code, name: item.name });
-                }
-                
-                // Check in types
-                if (item.types) {
-                  for (const type of item.types) {
-                    if (type.code.startsWith(query)) {
-                      results.push({ code: type.code, name: type.name });
-                    }
+            function traverse(data) {  
+              for (const item of data) {       
+                  if (item.code.startsWith(query)) {
+                      results.push({ code: item.code, name: item.name });
                   }
-                }
 
-                // Recursively check subclasses
-                if (item.subclasses) {
-                  traverse(item.subclasses);
-                }
-
-                // Recursively check groups
-                if (item.groups) {
-                  traverse(item.groups);
-                }
+                  if (item.types) {
+                      for (const type of item.types) {
+                          if (type.code.startsWith(query)) {
+                              results.push({ code: type.code, name: type.name });
+                          }
+                      }
+                  }
+                  
+                  if (item.subgroups) {
+                      for (const subgroup of item.subgroups) {
+                          if (subgroup.code.startsWith(query)) {
+                              results.push({ code: subgroup.code, name: subgroup.name });
+                          }
+                          if (subgroup.types){
+                             traverse([subgroup])
+                          }
+                      }
+                    }
+                
+                  if (item.subclasses) {
+                      traverse(item.subclasses);
+                  }
+                  if (item.groups){
+                     traverse(item.groups);
+                  }
               }
             }
 
