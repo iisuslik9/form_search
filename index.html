@@ -1,7 +1,22 @@
-<div id="okvedForm">
-  <select id="classSelect"></select>
-  <select id="subclassSelect" style="display: none;"></select>
-  <select id="groupSelect" style="display: none;"></select>
-  <select id="subgroupSelect" style="display: none;"></select>
-  <select id="kindSelect" style="display: none;"></select>
-</div>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ОКВЭД Поиск</title>
+    <style>
+        /* Добавьте стили по желанию */
+    </style>
+</head>
+<body>
+    <div id="okvedForm">
+        <input type="text" id="classInput" placeholder="Класс (например, 10)">
+        <input type="text" id="subclassInput" placeholder="Подкласс (например, 10.1)" style="display: none;">
+        <input type="text" id="groupInput" placeholder="Группа (например, 10.11)" style="display: none;">
+        <input type="text" id="subgroupInput" placeholder="Подгруппа (например, 10.111)" style="display: none;">
+        <div id="searchResults"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
