@@ -38,23 +38,25 @@
             "subgroups": [
               {
                 "code": "01.11.1",
-                "name": "Выращивание зерновых культур",
-                "types": [
+                "name": "Выращивание зерновых культур",            
+                  "types": [
                     {
                       "code": "01.11.11",
                       "name": "Выращивание пшеницы",
                     },
                     {
-                         "code": "01.11.12",
-                        "name": "Выращивание ячменя",
+                      "code": "01.11.12",
+                      "name": "Выращивание ячменя",
                     },
-                 ]
-              }
+                  ],
+                
+              },
             ]
+            
           }
         ]
-      }
-    ]
+      },
+    ],
   },
     {
     "code": "02",
@@ -62,8 +64,8 @@
     "subclasses": [
       {
         "code": "02.1",
-        "name": "Лесоводство и прочая деятельность, связанная с лесоводством",
-        "groups": [
+          "name": "Лесоводство и прочая деятельность, связанная с лесоводством",
+          "groups": [
           {
             "code": "02.10",
             "name": "Лесоводство и прочая деятельность, связанная с лесоводством",
@@ -86,78 +88,125 @@
   },
 ];
 
+        function organizeResults(results) {
+            const organized = {};
+
+            for (const item of results) {
+                const codeParts = item.code.split('.');
+                let currentLevel = organized;
+                let currentCode = "";
+
+                for (let i = 0; i < codeParts.length; i++) {
+                    currentCode += (i > 0 ? "." : "") + codeParts[i];
+
+                    if (!currentLevel[currentCode]) {
+                        currentLevel[currentCode] = {
+                            code: currentCode,
+                            name: null,
+                            children: {}
+                        };
+                    }
+
+                    if(i === codeParts.length - 1) {
+                      currentLevel[currentCode].name = item.name;
+                    } else {
+                        currentLevel = currentLevel[currentCode].children;
+                    }
+                }
+            }
+            return organized;
+        }
+
+
         function searchOkved(query) {
             const results = [];
 
-            function traverse(data) {  
-              for (const item of data) {       
-                  if (item.code.startsWith(query)) {
-                      results.push({ code: item.code, name: item.name });
-                  }
-
-                  if (item.types) {
-                      for (const type of item.types) {
-                          if (type.code.startsWith(query)) {
-                              results.push({ code: type.code, name: type.name });
-                          }
-                      }
-                  }
-                  
-                  if (item.subgroups) {
-                      for (const subgroup of item.subgroups) {
-                          if (subgroup.code.startsWith(query)) {
-                              results.push({ code: subgroup.code, name: subgroup.name });
-                          }
-                          if (subgroup.types){
-                             traverse([subgroup])
-                          }
-                      }
+            function traverse(data, parentCode = "") {
+               for (const item of data) {
+                    if (item.code.startsWith(query)) {                      
+                        results.push({ code: item.code, name: item.name });
                     }
-                
-                  if (item.subclasses) {
-                      traverse(item.subclasses);
-                  }
-                  if (item.groups){
-                     traverse(item.groups);
-                  }
-              }
+                     if(item.subgroups){
+                        for (const subgroup of item.subgroups) {
+                           if (subgroup.code.startsWith(query)) {
+                              results.push({ code: subgroup.code, name: subgroup.name});
+                            }
+                            if(subgroup.types){
+                                traverse(subgroup.types)
+                           }
+                        }
+                    }
+                     if (item.types) {
+                         traverse(item.types);
+                    }
+                      if (item.subclasses) {
+                        traverse(item.subclasses)
+                       }
+                       if(item.groups){
+                          traverse(item.groups)
+                       }
+                }
+            }            
+           traverse(okvedData)            
+            for (const item of okvedData) {
+              if (item.subclasses) {
+                   traverse(item.subclasses)
+                }
+                if(item.groups){
+                   traverse(item.groups)
+                }
             }
 
-            traverse(okvedData);
             return results;
         }
 
-        function displayResults(results) {
+        function displayResults(organizedData, level = 0) {
+            const resultsDiv = document.getElementById("results");
+
+              if (Object.keys(organizedData).length === 0) {
+                resultsDiv.innerHTML = "<p>No results found.</p>";
+                return;
+              }
+              const ul = document.createElement("ul");
+              ul.style.marginLeft = `${level * 20}px`;
+
+              for (const key in organizedData) {
+                  const item = organizedData[key];
+                  const li = document.createElement("li");
+                  li.textContent = `${item.code}: ${item.name || ''}`;
+
+                  if (Object.keys(item.children).length > 0) {
+                      const childUl = displayResults(item.children, level + 1);
+                      li.appendChild(childUl);
+                  }
+
+                  ul.appendChild(li);
+              }
+
+              resultsDiv.appendChild(ul);
+              return ul
+        }
+
+        function clearResults() {
             const resultsDiv = document.getElementById("results");
             resultsDiv.innerHTML = "";
-          
-            if (results.length === 0) {
-              resultsDiv.innerHTML = "<p>No results found.</p>";
-              return;
-            }
-          
-            const ul = document.createElement("ul");
-            results.forEach(result => {
-                const li = document.createElement("li");
-                li.textContent = `${result.code}: ${result.name}`;
-                ul.appendChild(li);
-            });
-            resultsDiv.appendChild(ul);
+            displayResults({});
+
         }
 
         const okvedCodeInput = document.getElementById("okvedCode");
 
         okvedCodeInput.addEventListener("input", () => {
-          const query = okvedCodeInput.value.trim();
-          
-          if (query.length > 0) {
-              const results = searchOkved(query);
-              displayResults(results);
-          } else {
-              // Clear results if the input field is empty
-              displayResults([]);
-            }
+            const query = okvedCodeInput.value.trim();
+
+            const results = searchOkved(query);
+            const organizedResults = organizeResults(results);
+            const resultsDiv = document.getElementById("results");
+            resultsDiv.innerHTML = "";
+            displayResults(organizedResults);
         });
+        clearResults();
+        
 
     </script>
 </body>
