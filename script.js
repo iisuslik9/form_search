@@ -124,7 +124,7 @@ function displayResultsW(itemsDictionary) {
     resultsDiv.innerHTML = "";
     
     if (!itemsDictionary || Object.keys(itemsDictionary).length === 0) {
-        resultsDiv.innerHTML = "<p>No results found.</p>";
+        resultsDiv.innerHTML = "<p>No results</p>";
         return;
     }
 
@@ -207,16 +207,7 @@ okvedName.addEventListener("input", () => {
 
 // JSON Loading:
 
-// Added fetch('okved_data.json') at the beginning of main.js to load the JSON data.
+// Added fetch('data.json') at the beginning of main.js to load the JSON data.
 // The .then(response => response.json()) part parses the JSON response.
 // loadedOkvedData = data; now stores the data from the JSON file.
 // clearResults() is called to initialize the display after data is loaded.
-// Error handling (.catch) added for robustness.
-// searchOkved Modification:
-
-// The traverse function inside searchOkved now receives the loadedOkvedData as its argument.
-// traverse function now only needs to be called once.
-// The call to traverse okvedData at the end of searchOkved function was deleted.
-// Removed okvedData Array:
-
-// The original okvedData array was completely removed.
