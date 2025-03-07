@@ -144,33 +144,6 @@ function addItemToUl(ul, item) {
     const li = document.createElement("li");
     li.textContent = `${item.code}: ${item.name || ''}`;
     li.classList.add('main-li');
-    
-    if (item.children && item.children.length > 0) {
-        const expandButton = document.createElement("span");
-        expandButton.textContent = "[+]"
-        expandButton.classList.add("expand-button");
-
-        let isExpanded = false;
-        expandButton.addEventListener("click", () => {
-            if (!isExpanded) {
-                const childUl = document.createElement("ul");
-                childUl.classList.add('child-ul')
-                for (const child of item.children) {
-                    addItemToUl(childUl, child);
-                }
-                li.appendChild(childUl);
-                expandButton.textContent = "[-]";
-                isExpanded = true;
-            } else {
-                const childUl = li.querySelector("ul");
-                li.removeChild(childUl);
-                expandButton.textContent = "[+]";
-                isExpanded = false;
-            }
-        });
-
-        li.insertBefore(expandButton, li.firstChild);
-        }
     ul.appendChild(li);
 }
 
