@@ -1,3 +1,13 @@
+const inputField = document.getElementById('okvedCode');
+
+inputField.addEventListener('input', function() {
+    const value = this.value.replace(/[^0-9]/g, ''); // Удаляем все, кроме цифр
+    const formattedValue = value.match(/.{1,2}/g).join('.'); // Добавляем точку после каждых двух цифр
+    
+    this.value = formattedValue;
+});
+
+
 let loadedOkvedData = [];
 const map = {};
 
