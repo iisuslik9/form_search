@@ -1,8 +1,8 @@
+// Добавляем точку после каждых двух цифр
 const inputField = document.getElementById('okvedCode');
-
 inputField.addEventListener('input', function() {
-    const value = this.value.replace(/[^0-9]/g, ''); // Удаляем все, кроме цифр
-    const formattedValue = value.match(/.{1,2}/g).join('.'); // Добавляем точку после каждых двух цифр
+    const value = this.value.replace(/[^0-9]/g, ''); 
+    const formattedValue = value.match(/.{1,2}/g).join('.'); 
     
     this.value = formattedValue;
 });
@@ -39,15 +39,13 @@ function buildHierarchy(items) {
 
 function searchOkved(query) {
     const results = {};
-    
     // Ищем совпадения по коду
     Object.keys(map).forEach(code => {
         if (code.startsWith(query)) {
             const item = map[code];
             if (item && !results[item.code]) {
                 results[item.code] = item;
-            }
-            
+            }            
             // Добавляем всех потомков
             function addChildren(item) {
                 if (!item || !item.children) return;
@@ -72,7 +70,7 @@ function displayResults(results) {
     resultsDiv.innerHTML = "";
     
     if (!Object.keys(results).length) {
-        resultsDiv.innerHTML = "<p>Ничего не найдено</p>";
+        resultsDiv.innerHTML = "<p>No results</p>";
         return;
     }
 
@@ -89,14 +87,14 @@ function displayResults(results) {
 function addCodeItemToUl(ul, item, results, level = 0) {
     const li = document.createElement("li");
     li.style.marginLeft = `${level * 20}px`;
-    
+
     li.innerHTML = `<span class="code">${item.code}</span>: ${item.name}`;
 
-    if (item.children?.length > 5) {
+    if (item.children?.length > 0) {
         const expandButton = document.createElement("span");
         expandButton.className = "toggle";
         expandButton.textContent = " ▶";
-        
+
         expandButton.addEventListener("click", () => {
             const childUl = li.querySelector("ul");
             if (childUl) {
@@ -111,16 +109,10 @@ function addCodeItemToUl(ul, item, results, level = 0) {
                 expandButton.textContent = " ▼";
             }
         });
-        
+
         li.insertBefore(expandButton, li.firstChild);
-    } else if (item.children?.length > 0) {
-        const childUl = document.createElement("ul");
-        item.children
-            .filter(child => results[child.code])
-            .forEach(child => addCodeItemToUl(childUl, child, results, level + 1));
-        li.appendChild(childUl);
     }
-    
+
     ul.appendChild(li);
 }
 
@@ -133,7 +125,6 @@ document.getElementById("okvedCode").addEventListener("input", e => {
 function clearResults() {
     document.getElementById("results").innerHTML = "";
 }
-
 
 
 ///===========================поиск по словам
@@ -163,11 +154,6 @@ function addItemToUl(ul, item) {
     li.innerHTML = `${item.code}: ${item.markedName || item.name}`;
     li.classList.add('main-li');
     ul.appendChild(li);
-}
-
-
-function clearResultsW() {
-    displayResultsW(searchOkvedByWord("")); 
 }
 
  
@@ -231,7 +217,7 @@ function markMatchedText(text, query) {
     const regex = new RegExp(query, "giu");
     return text.replace(regex, (match) => `<mark>${match}</mark>`);
 }
-clearResultsW();
+clearResults();
 const okvedName = document.getElementById("okvedName");
 okvedName.addEventListener("input", () => {    
     const query = okvedName.value.trim();    
