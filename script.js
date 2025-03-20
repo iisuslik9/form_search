@@ -136,7 +136,7 @@ function clearResults() {
 
 
 
-///===========================
+///===========================поиск по словам
 function displayResultsW(itemsDictionary) {
     const resultsDiv = document.getElementById("results");
     resultsDiv.innerHTML = "";
@@ -158,46 +158,10 @@ function displayResultsW(itemsDictionary) {
     resultsDiv.appendChild(ul);
 }
 
-// function addItemToUl(ul, item) {
-//     const li = document.createElement("li");
-//     li.textContent = `${item.code}: ${item.name || ''}`;
-//     li.classList.add('main-li');
-//     ul.appendChild(li);
-// }
-
-
 function addItemToUl(ul, item) {
     const li = document.createElement("li");
     li.innerHTML = `${item.code}: ${item.markedName || item.name}`;
-    
-    li.classList.add('main-li'); 
-    
-    if (item.children && item.children.length > 0) {
-        const expandButton = document.createElement("span");
-        expandButton.textContent = "[+]"
-        expandButton.classList.add("expand-button");
-
-        let isExpanded = false;
-        expandButton.addEventListener("click", () => {
-            if (!isExpanded) {
-                const childUl = document.createElement("ul");
-                childUl.classList.add('child-ul')
-                for (const child of item.children) {
-                    addItemToUl(childUl, child);
-                }
-                li.appendChild(childUl);
-                expandButton.textContent = "[-]";
-                isExpanded = true;
-            } else {
-                const childUl = li.querySelector("ul");
-                li.removeChild(childUl);
-                expandButton.textContent = "[+]";
-                isExpanded = false;
-            }
-        });
-
-        li.insertBefore(expandButton, li.firstChild);
-        }
+    li.classList.add('main-li');
     ul.appendChild(li);
 }
 
@@ -209,55 +173,60 @@ function clearResultsW() {
  
 function searchOkvedByWord(query) {
     const results = {};
-    if (!query){
-        return results;
-    }
-    for (const item of loadedOkvedData){
+    
+    if (!query) return results;
+
+    loadedOkvedData.forEach(item => {
         if (item.name.toLowerCase().includes(query.toLowerCase())) {
             const resultItem = { ...item };
             resultItem.markedName = markMatchedText(item.name, query);
             results[item.code] = resultItem;
         }
         
-        if(item.subgroups){
-            item.subgroups.forEach(subgroup => traverseChildren(subgroup, item, query));
+        if (item.subgroups) {
+            item.subgroups.forEach(subgroup => {
+                if (subgroup.name.toLowerCase().includes(query.toLowerCase())) {
+                    const subgroupItem = { ...subgroup };
+                    subgroupItem.markedName = markMatchedText(subgroup.name, query);
+                    results[subgroup.code] = subgroupItem;
+                }
+            });
         }
-        if (item.types){
-            item.types.forEach(type => traverseChildren(type, item, query));
+        
+        if (item.types) {
+            item.types.forEach(type => {
+                if (type.name.toLowerCase().includes(query.toLowerCase())) {
+                    const typeItem = { ...type };
+                    typeItem.markedName = markMatchedText(type.name, query);
+                    results[type.code] = typeItem;
+                }
+            });
         }
-        if (item.subclasses){
-            item.subclasses.forEach(subclass => traverseChildren(subclass, item, query));
+        
+        if (item.subclasses) {
+            item.subclasses.forEach(subclass => {
+                if (subclass.name.toLowerCase().includes(query.toLowerCase())) {
+                    const subclassItem = { ...subclass };
+                    subclassItem.markedName = markMatchedText(subclass.name, query);
+                    results[subclass.code] = subclassItem;
+                }
+            });
         }
-        if (item.groups){
-            item.groups.forEach(group => traverseChildren(group, item, query));
+        
+        if (item.groups) {
+            item.groups.forEach(group => {
+                if (group.name.toLowerCase().includes(query.toLowerCase())) {
+                    const groupItem = { ...group };
+                    groupItem.markedName = markMatchedText(group.name, query);
+                    results[group.code] = groupItem;
+                }
+            });
         }
-    }
-    return results
+    });
+    
+    return results;
 }
-function traverseChildren(itemData, parent, query){
 
-    const item = { code: itemData.code, name: itemData.name, children: [] };    
-    if (item.name.toLowerCase().includes(query.toLowerCase())){ 
-        item.markedName = markMatchedText(item.name, query);
-        item.name = itemData.name;
-
-        if (parent) {
-            parent.children.push(item)
-        }
-        if(itemData.subgroups){
-            itemData.subgroups.forEach(subgroup => traverseChildren(subgroup, item, query));
-        }
-        if (itemData.types){
-            itemData.types.forEach(type => traverseChildren(type, item, query));
-        }
-        if (itemData.subclasses){
-            itemData.subclasses.forEach(subclass => traverseChildren(subclass, item, query));
-        }
-        if (itemData.groups){
-            itemData.groups.forEach(group => traverseChildren(group, item, query));
-        }
-    }
-}
 function markMatchedText(text, query) {  
     const regex = new RegExp(query, "giu");
     return text.replace(regex, (match) => `<mark>${match}</mark>`);
