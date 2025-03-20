@@ -8,15 +8,14 @@ inputField.addEventListener('input', function() {
 });
 
 
-let loadedOkvedData = [];
-const map = {};
+let loadedOkvedData = []; //raw array OKVED objects
+const map = {}; //organaside data
 
-// Загрузка данных
 fetch('okved_2.json')
     .then(response => response.json())
     .then(data => {
         loadedOkvedData = data;
-        buildHierarchy(data); // Построение иерархии при загрузке
+        buildHierarchy(data);
         clearResults();
     })
     .catch(error => console.error('Error loading JSON:', error));
@@ -26,22 +25,27 @@ function buildHierarchy(items) {
     // Создаем хеш-таблицу
     items.forEach(item => {
         // добавляем каждый элемент в map
+        //синтаксис расширения (...), используемый с объектом. 
+        // Он создает поверхностную копию объекта элемента. 
+        // Это означает, что все свойства объекта элемента
+        // будут скопированы в этот новый объект.
         map[item.code] = { ...item, children: [] };
     });
-    // Build the tree by assigning children to their parents.
+    // добавляем потомков к родителям
     items.forEach(item => {
+        //используем item.parent_code для поиска родительского элемента в map.
         const parent = map[item.parent_code];
         if (parent) {
-            // If a parent exists, add the current item to its children.
+            // If a parent exists
+            //берем текущий элемент  и добавляем его в массив потомков его родителя
             parent.children.push(map[item.code]);
         }
     });
 }
 
 
-// Search for OKVED items by code.
 function searchOkved(query) {
-    const results = {}; // Dictionary to store the search results.
+    const results = {}; //to store results
 
     // Iterate through all codes in the map.
     Object.keys(map).forEach(code => {
@@ -51,9 +55,8 @@ function searchOkved(query) {
 
             // If item exists and not yet added to results, add it.
             if (item && !results[item.code]) { 
-                results[item.code] = item; // Add the item to the results.
+                results[item.code] = item;
             }
-
             // Recursively add all children of this item to the results.
             addAllChildren(item, results);
         }
@@ -74,8 +77,6 @@ function addAllChildren(item, results) {
     });
 }
 
-
-// Отображение результатов поиска по коду
 function displayResults(results) {
     const resultsDiv = document.getElementById("results");
     resultsDiv.innerHTML = "";
@@ -170,28 +171,21 @@ function addItemToUl(ul, item) {
  
 function searchOkvedByWord(query) {
     const results = {};
-
     if (!query) return results;
 
-    // Helper function to recursively search and mark matches
     function traverse(item) {
         if (item.name.toLowerCase().includes(query.toLowerCase())) {
             const resultItem = { ...item };
             resultItem.markedName = markMatchedText(item.name, query);
             results[item.code] = resultItem;
         }
-
-        // Check for and process children
-        const childrenTypes = ['subgroups', 'types', 'subclasses', 'groups'];
-        for (const type of childrenTypes) {
-            if (item[type]) {
-                item[type].forEach(child => traverse(child));
-            }
-        }
+         if (item.children){
+             item.children.forEach(child => traverse(child));
+         }
     }
 
-    // Start traversal with top-level items
-    loadedOkvedData.forEach(item => traverse(item));
+    // Start traversal with top-level items.
+    Object.values(map).filter(item => !item.parent_code).forEach(item => traverse(item));
 
     return results;
 }
@@ -207,13 +201,3 @@ okvedName.addEventListener("input", () => {
     const query = okvedName.value.trim();    
     displayResultsW(searchOkvedByWord(query));
 })
-
-
-
-
-// JSON Loading:
-
-// Added fetch('data.json') at the beginning of main.js to load the JSON data.
-// The .then(response => response.json()) part parses the JSON response.
-// loadedOkvedData = data; now stores the data from the JSON file.
-// clearResults() is called to initialize the display after data is loaded.
