@@ -92,7 +92,7 @@ function addCodeItemToUl(ul, item, results, level = 0) {
     
     li.innerHTML = `<span class="code">${item.code}</span>: ${item.name}`;
 
-    if (item.children?.length > 0) {
+    if (item.children?.length > 5) {
         const expandButton = document.createElement("span");
         expandButton.className = "toggle";
         expandButton.textContent = " ▶";
@@ -113,10 +113,17 @@ function addCodeItemToUl(ul, item, results, level = 0) {
         });
         
         li.insertBefore(expandButton, li.firstChild);
+    } else if (item.children?.length > 0) {
+        const childUl = document.createElement("ul");
+        item.children
+            .filter(child => results[child.code])
+            .forEach(child => addCodeItemToUl(childUl, child, results, level + 1));
+        li.appendChild(childUl);
     }
     
     ul.appendChild(li);
 }
+
 document.getElementById("okvedCode").addEventListener("input", e => {
     const query = e.target.value.trim();
     displayResults(searchOkved(query));
@@ -158,42 +165,39 @@ function displayResultsW(itemsDictionary) {
 //     ul.appendChild(li);
 // }
 
-// Добавление элемента в список для поиска по коду
-function addCodeItemToUl(ul, item, results, level = 0) {
-    const li = document.createElement("li");
-    li.style.marginLeft = `${level * 20}px`;
-    
-    li.innerHTML = `<span class="code">${item.code}</span>: ${item.name}`;
 
-    if (item.children?.length > 5) {
+function addItemToUl(ul, item) {
+    const li = document.createElement("li");
+    li.innerHTML = `${item.code}: ${item.markedName || item.name}`;
+    
+    li.classList.add('main-li'); 
+    
+    if (item.children && item.children.length > 0) {
         const expandButton = document.createElement("span");
-        expandButton.className = "toggle";
-        expandButton.textContent = " ▶";
-        
+        expandButton.textContent = "[+]"
+        expandButton.classList.add("expand-button");
+
+        let isExpanded = false;
         expandButton.addEventListener("click", () => {
-            const childUl = li.querySelector("ul");
-            if (childUl) {
-                li.removeChild(childUl);
-                expandButton.textContent = " ▶";
+            if (!isExpanded) {
+                const childUl = document.createElement("ul");
+                childUl.classList.add('child-ul')
+                for (const child of item.children) {
+                    addItemToUl(childUl, child);
+                }
+                li.appendChild(childUl);
+                expandButton.textContent = "[-]";
+                isExpanded = true;
             } else {
-                const newUl = document.createElement("ul");
-                item.children
-                    .filter(child => results[child.code])
-                    .forEach(child => addCodeItemToUl(newUl, child, results, level + 1));
-                li.appendChild(newUl);
-                expandButton.textContent = " ▼";
+                const childUl = li.querySelector("ul");
+                li.removeChild(childUl);
+                expandButton.textContent = "[+]";
+                isExpanded = false;
             }
         });
-        
+
         li.insertBefore(expandButton, li.firstChild);
-    } else if (item.children?.length > 0) {
-        const childUl = document.createElement("ul");
-        item.children
-            .filter(child => results[child.code])
-            .forEach(child => addCodeItemToUl(childUl, child, results, level + 1));
-        li.appendChild(childUl);
-    }
-    
+        }
     ul.appendChild(li);
 }
 
