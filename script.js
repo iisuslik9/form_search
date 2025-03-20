@@ -25,42 +25,53 @@ fetch('okved_2.json')
 function buildHierarchy(items) {
     // Создаем хеш-таблицу
     items.forEach(item => {
+        // добавляем каждый элемент в map
         map[item.code] = { ...item, children: [] };
     });
-    // Строим дерево
+    // Build the tree by assigning children to their parents.
     items.forEach(item => {
         const parent = map[item.parent_code];
         if (parent) {
+            // If a parent exists, add the current item to its children.
             parent.children.push(map[item.code]);
         }
     });
 }
 
 
+// Search for OKVED items by code.
 function searchOkved(query) {
-    const results = {};
-    // Ищем совпадения по коду
+    const results = {}; // Dictionary to store the search results.
+
+    // Iterate through all codes in the map.
     Object.keys(map).forEach(code => {
+        // Check if the code starts with the search query.
         if (code.startsWith(query)) {
-            const item = map[code];
-            if (item && !results[item.code]) {
-                results[item.code] = item;
-            }            
-            // Добавляем всех потомков
-            function addChildren(item) {
-                if (!item || !item.children) return;
-                item.children.forEach(child => {
-                    if (!results[child.code]) {
-                        results[child.code] = child;
-                    }
-                    addChildren(child);
-                });
+            const item = map[code]; // Get the item from the map.
+
+            // If item exists and not yet added to results, add it.
+            if (item && !results[item.code]) { 
+                results[item.code] = item; // Add the item to the results.
             }
-            addChildren(item);
+
+            // Recursively add all children of this item to the results.
+            addAllChildren(item, results);
         }
     });
-    
+
     return results;
+}
+
+// Recursive function to add all children of an item to the results.
+function addAllChildren(item, results) {
+    if (!item || !item.children) return; // Base case: item has no children.
+
+    item.children.forEach(child => {
+        if (!results[child.code]) {
+            results[child.code] = child; // Add the child to the results.
+        }
+        addAllChildren(child, results); // Recursively check for more children.
+    });
 }
 
 
