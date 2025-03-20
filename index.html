@@ -8,26 +8,29 @@
         #results {
             margin-top: 20px;
         }
-        .mark {
-  background-color: yellow;
+        #okvedCode{
+          width: 40%;
+        }
+        ul {
+        list-style-type:  none;
 }
-
     </style>
 </head>
 <body>
 
-    <h1>OKVED Live Search</h1>
-    
-    <div>
-        <label for="okvedName">Search by words:</label>
-        <input type="text" id="okvedName" name="okvedName" placeholder="Enter name" maxlength="255">
-    </div>
-    
-    
-
+    <h1>ОКВЭД</h1>
+    <label for="okvedCode">код:</label>
+    <input type="text" id="okvedCode" name="okvedCode" placeholder="введите оквэд код (например, 01.11.1)" maxlength="8">
+    <label for="okvedCode">название:</label>
+    <input type="text" id="okvedName" name="okvedName" placeholder="введите название" maxlength="255">
     <div id="results"></div>
-
     <script src="script.js">
     </script>
 </body>
 </html>
+<!-- //TODO
+//убрать маркеры
+//подклассы в выпадающем списке
+подсветка найденого
+//точки после двух 
+///01 = 1 -->
