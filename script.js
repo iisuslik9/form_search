@@ -1,121 +1,116 @@
 let loadedOkvedData = [];
+const map = {};
 
+// Загрузка данных
 fetch('okved_2.json')
     .then(response => response.json())
     .then(data => {
         loadedOkvedData = data;
+        buildHierarchy(data); // Построение иерархии при загрузке
         clearResults();
     })
     .catch(error => console.error('Error loading JSON:', error));
 
-function organizeResults(results) {
-    const organized = {};
-
-    for (const item of results) {
-        const codeParts = item.code.split('.');
-        let currentLevel = organized;
-        let currentCode = "";
-
-        for (let i = 0; i < codeParts.length; i++) {
-            currentCode += (i > 0 ? "." : "") + codeParts[i];
-
-            if (!currentLevel[currentCode]) {
-                currentLevel[currentCode] = {
-                    code: currentCode,
-                    name: null,
-                    children: {}
-                };
-            }
-
-            if (i === codeParts.length - 1) {
-                currentLevel[currentCode].name = item.name;
-            } else {
-                currentLevel = currentLevel[currentCode].children;
-            }
+// Построение иерархической структуры
+function buildHierarchy(items) {
+    // Создаем хеш-таблицу
+    items.forEach(item => {
+        map[item.code] = { ...item, children: [] };
+    });
+    // Строим дерево
+    items.forEach(item => {
+        const parent = map[item.parent_code];
+        if (parent) {
+            parent.children.push(map[item.code]);
         }
-    }
-    return organized;
+    });
 }
 
-function searchOkved(query) {
-    const results = [];
 
-    function traverse(data) {
-        for (const item of data) {
-            if (item.code.startsWith(query)) {
-                results.push({ code: item.code, name: item.name });
-            }
-            if (item.subgroups) {
-                for (const subgroup of item.subgroups) {
-                    if (subgroup.code.startsWith(query)) {
-                        results.push({ code: subgroup.code, name: subgroup.name });
-                    }
-                    if (subgroup.types) {
-                        traverse(subgroup.types)
-                    }
+function searchOkved(query) {
+    const results = {};
+    
+    // Ищем совпадения по коду
+    Object.keys(map).forEach(code => {
+        if (code.startsWith(query)) {
+            let currentCode = code;
+            
+            // Добавляем всех родителей
+            while (currentCode) {
+                const item = map[currentCode];
+                if (item && !results[item.code]) {
+                    results[item.code] = item;
                 }
-            }
-            if (item.types) {
-                traverse(item.types);
-            }
-            if (item.subclasses) {
-                traverse(item.subclasses)
-            }
-            if (item.groups) {
-                traverse(item.groups)
+                currentCode = item?.parent_code;
             }
         }
-    }
-    traverse(loadedOkvedData)
-
+    });
+    
     return results;
 }
 
-function displayResults(organizedData, level = 0) {
+// Отображение результатов поиска по коду
+function displayResults(results) {
     const resultsDiv = document.getElementById("results");
-
-    if (Object.keys(organizedData).length === 0) {
-        resultsDiv.innerHTML = "<p>No results found.</p>";
+    resultsDiv.innerHTML = "";
+    
+    if (!Object.keys(results).length) {
+        resultsDiv.innerHTML = "<p>Ничего не найдено</p>";
         return;
     }
+
+    const rootItems = Object.values(results).filter(
+        item => !item.parent_code || !results[item.parent_code]
+    );
+    
     const ul = document.createElement("ul");
-    ul.style.marginLeft = `${level * 20}px`;
-
-    for (const key in organizedData) {
-        const item = organizedData[key];
-        const li = document.createElement("li");
-        li.textContent = `${item.code}: ${item.name || ''}`;
-
-        if (Object.keys(item.children).length > 0) {
-            const childUl = displayResults(item.children, level + 1);
-            li.appendChild(childUl);
-        }
-
-        ul.appendChild(li);
-    }
-
+    rootItems.forEach(item => addCodeItemToUl(ul, item, results));
     resultsDiv.appendChild(ul);
-    return ul
 }
+
+// Добавление элемента в список для поиска по коду
+function addCodeItemToUl(ul, item, results, level = 0) {
+    const li = document.createElement("li");
+    li.style.marginLeft = `${level * 20}px`;
+    
+    li.innerHTML = `<span class="code">${item.code}</span>: ${item.name}`;
+
+    if (item.children?.length > 0) {
+        const expandButton = document.createElement("span");
+        expandButton.className = "toggle";
+        expandButton.textContent = " ▶";
+        
+        expandButton.addEventListener("click", () => {
+            const childUl = li.querySelector("ul");
+            if (childUl) {
+                li.removeChild(childUl);
+                expandButton.textContent = " ▶";
+            } else {
+                const newUl = document.createElement("ul");
+                item.children
+                    .filter(child => results[child.code])
+                    .forEach(child => addCodeItemToUl(newUl, child, results, level + 1));
+                li.appendChild(newUl);
+                expandButton.textContent = " ▼";
+            }
+        });
+        
+        li.insertBefore(expandButton, li.firstChild);
+    }
+    
+    ul.appendChild(li);
+}
+document.getElementById("okvedCode").addEventListener("input", e => {
+    const query = e.target.value.trim();
+    displayResults(searchOkved(query));
+});
+
 
 function clearResults() {
-    const resultsDiv = document.getElementById("results");
-    resultsDiv.innerHTML = "";
-    displayResults({});
-
+    document.getElementById("results").innerHTML = "";
 }
 
-const okvedCodeInput = document.getElementById("okvedCode");
 
-okvedCodeInput.addEventListener("input", () => {
-    const query = okvedCodeInput.value.trim();
-
-    const results = searchOkved(query);
-    const organizedResults = organizeResults(results);
-    const resultsDiv = document.getElementById("results");
-    resultsDiv.innerHTML = "";
-    displayResults(organizedResults);
-});
 
 ///===========================
 function displayResultsW(itemsDictionary) {
