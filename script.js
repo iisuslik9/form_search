@@ -159,59 +159,32 @@ function addItemToUl(ul, item) {
  
 function searchOkvedByWord(query) {
     const results = {};
-    
+
     if (!query) return results;
 
-    loadedOkvedData.forEach(item => {
+    // Helper function to recursively search and mark matches
+    function traverse(item) {
         if (item.name.toLowerCase().includes(query.toLowerCase())) {
             const resultItem = { ...item };
             resultItem.markedName = markMatchedText(item.name, query);
             results[item.code] = resultItem;
         }
-        
-        if (item.subgroups) {
-            item.subgroups.forEach(subgroup => {
-                if (subgroup.name.toLowerCase().includes(query.toLowerCase())) {
-                    const subgroupItem = { ...subgroup };
-                    subgroupItem.markedName = markMatchedText(subgroup.name, query);
-                    results[subgroup.code] = subgroupItem;
-                }
-            });
+
+        // Check for and process children
+        const childrenTypes = ['subgroups', 'types', 'subclasses', 'groups'];
+        for (const type of childrenTypes) {
+            if (item[type]) {
+                item[type].forEach(child => traverse(child));
+            }
         }
-        
-        if (item.types) {
-            item.types.forEach(type => {
-                if (type.name.toLowerCase().includes(query.toLowerCase())) {
-                    const typeItem = { ...type };
-                    typeItem.markedName = markMatchedText(type.name, query);
-                    results[type.code] = typeItem;
-                }
-            });
-        }
-        
-        if (item.subclasses) {
-            item.subclasses.forEach(subclass => {
-                if (subclass.name.toLowerCase().includes(query.toLowerCase())) {
-                    const subclassItem = { ...subclass };
-                    subclassItem.markedName = markMatchedText(subclass.name, query);
-                    results[subclass.code] = subclassItem;
-                }
-            });
-        }
-        
-        if (item.groups) {
-            item.groups.forEach(group => {
-                if (group.name.toLowerCase().includes(query.toLowerCase())) {
-                    const groupItem = { ...group };
-                    groupItem.markedName = markMatchedText(group.name, query);
-                    results[group.code] = groupItem;
-                }
-            });
-        }
-    });
-    
+    }
+
+    // Start traversal with top-level items
+    loadedOkvedData.forEach(item => traverse(item));
+
     return results;
 }
+
 
 function markMatchedText(text, query) {  
     const regex = new RegExp(query, "giu");
