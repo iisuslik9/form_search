@@ -33,21 +33,28 @@ function searchOkved(query) {
     // Ищем совпадения по коду
     Object.keys(map).forEach(code => {
         if (code.startsWith(query)) {
-            let currentCode = code;
-            
-            // Добавляем всех родителей
-            while (currentCode) {
-                const item = map[currentCode];
-                if (item && !results[item.code]) {
-                    results[item.code] = item;
-                }
-                currentCode = item?.parent_code;
+            const item = map[code];
+            if (item && !results[item.code]) {
+                results[item.code] = item;
             }
+            
+            // Добавляем всех потомков
+            function addChildren(item) {
+                if (!item || !item.children) return;
+                item.children.forEach(child => {
+                    if (!results[child.code]) {
+                        results[child.code] = child;
+                    }
+                    addChildren(child);
+                });
+            }
+            addChildren(item);
         }
     });
     
     return results;
 }
+
 
 // Отображение результатов поиска по коду
 function displayResults(results) {
