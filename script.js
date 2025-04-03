@@ -147,40 +147,20 @@ function searchOkvedByWord(query) {
     if (!query) return results; // Если запрос пустой, возвращаем пустой массив
 
     // Рекурсивная функция для поиска и построения иерархии
-    function searchInTree(item, parent) {
-        let currentItemMatches = item.name.toLowerCase().includes(query.toLowerCase());
-        let newItem = { ...item, children: [] };
-        
-        if (currentItemMatches) {
-            newItem.markedName = markMatchedText(item.name, query);
-        }
-        if (item.children) {
-            item.children.forEach(child => {
-                if(searchInTree(child, newItem)){
-                    currentItemMatches = true;
-                }
-            });
-        }
-        
-        if (currentItemMatches) {
-            if(newItem.children.length === 0 && !newItem.markedName){
-                return false;
-            }
-            if (parent) {
-                parent.children.push(newItem);
-            }
-            else {
-                results.push(newItem);
-            }
-            return true;
-        } else {
-            return false;
-        }
-
-    };
-    Object.values(map).filter(item => !item.parent_code).forEach(rootItem => {
-        searchInTree(rootItem);
-    });
+    function searchInTree(item) {
+      if (item.name.toLowerCase().includes(query.toLowerCase())) {
+          const resultItem = { ...item };
+          resultItem.markedName = markMatchedText(item.name, query);
+          results.push(resultItem);
+      }
+      if (item.children) {
+        item.children.forEach(child => searchInTree(child));
+      }
+  }
+  
+  Object.values(map).filter(item => !item.parent_code).forEach(rootItem => {
+      searchInTree(rootItem);
+  });
     return results;
 }
 
@@ -194,27 +174,20 @@ function markMatchedText(text, query) {
 
 // Отображение результатов поиска по слову
 function displaySearchResultsW(results) {
-  const resultsDiv = document.getElementById('results');
-  resultsDiv.innerHTML = ''; 
-  if (results.length === 0) {
-    resultsDiv.textContent = 'Ничего не найдено.';
-    return;
-  }
-  const ul = document.createElement('ul');
-  const addSearchItemToUlW = (item) => {
-    const li = document.createElement('li');
-    li.innerHTML = `<span class="code">${item.code}</span>: ${item.markedName || item.name}`;
-    ul.appendChild(li);
-    if (item.children) {
-      const childUl = document.createElement('ul');
-      item.children.forEach(child => addSearchItemToUlW(child));
-      li.appendChild(childUl);
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = '';
+    if (results.length === 0) {
+        resultsDiv.textContent = 'Ничего не найдено.';
+        return;
     }
-  };
-  results.forEach(item => addSearchItemToUlW(item));
-  resultsDiv.appendChild(ul);
+    const ul = document.createElement('ul');
+    results.forEach(item => {
+        const li = document.createElement('li');
+        li.innerHTML = `<span class="code">${item.code}</span>: ${item.markedName || item.name}`;
+        ul.appendChild(li);
+    });
+    resultsDiv.appendChild(ul);
 }
-
 const okvedName = document.getElementById("okvedName");
 okvedName.addEventListener("input", () => {    
     const query = okvedName.value.trim();
