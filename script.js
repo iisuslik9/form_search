@@ -147,42 +147,41 @@ function searchOkvedByWord(query) {
     if (!query) return results; // Если запрос пустой, возвращаем пустой массив
 
     // Рекурсивная функция для поиска и построения иерархии
-    function searchInTree(item) {
-      if (item.name.toLowerCase().includes(query.toLowerCase())) {
-          const resultItem = { ...item };
-          resultItem.markedName = markMatchedText(item.name, query);
-          results.push(resultItem);
-      }
-      if (item.children) {
-        item.children.forEach(child => searchInTree(child));
-      }
-  }
-  
-  Object.values(map).filter(item => !item.parent_code).forEach(rootItem => {
-      searchInTree(rootItem);
-  });
+    function searchInTree(item, level = 0) {
+        if (item.name.toLowerCase().includes(query.toLowerCase())) {
+            const resultItem = { ...item, level: level };
+            resultItem.markedName = markMatchedText(item.name, query);
+            results.push(resultItem);
+        }
+        if (item.children) {
+            item.children.forEach(child => searchInTree(child, level + 1));
+        }
+    }
+
+    Object.values(map).filter(item => !item.parent_code).forEach(rootItem => {
+        searchInTree(rootItem);
+    });
+
     return results;
 }
 
 // Подсветка совпадений в названии элемента
-function markMatchedText(text, query) {  
+function markMatchedText(text, query) {
     // Экранируем специальные символы в запросе
     const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(`(${escapedQuery})`, "giu");    
+    const regex = new RegExp(`(${escapedQuery})`, "giu");
     return text.replace(regex, (match) => `<mark>${match}</mark>`);
 }
 
 // Отображение результатов поиска по слову
 function displaySearchResultsW(results) {
     const resultsDiv = document.getElementById('results');
-    resultsDiv.innerHTML = '';
-    if (results.length === 0) {
-        resultsDiv.textContent = 'Ничего не найдено.';
-        return;
-    }
+    resultsDiv.innerHTML = ''; // Clear previous results
+    if (results.length === 0) {resultsDiv.textContent = 'Ничего не найдено.'; return;}
     const ul = document.createElement('ul');
-    results.forEach(item => {
+    results.forEach(item => {        
         const li = document.createElement('li');
+        li.style.marginLeft = `${item.level * 20}px`;
         li.innerHTML = `<span class="code">${item.code}</span>: ${item.markedName || item.name}`;
         ul.appendChild(li);
     });
