@@ -20,28 +20,28 @@ fetch('okved_2.json')
     })
     .catch(error => console.error('Error loading JSON:', error));
 
-// Построение иерархической структуры
-function buildHierarchy(items) {
-    // Создаем хеш-таблицу
-    items.forEach(item => {
-        // добавляем каждый элемент в map
-        //синтаксис расширения (...), используемый с объектом. 
-        // Он создает поверхностную копию объекта элемента. 
-        // Это означает, что все свойства объекта элемента
-        // будут скопированы в этот новый объект.
-        map[item.code] = { ...item, children: [] };
-    });
-    // добавляем потомков к родителям
-    items.forEach(item => {
-        //используем item.parent_code для поиска родительского элемента в map.
-        const parent = map[item.parent_code];
-        if (parent) {
-            // If a parent exists
-            //берем текущий элемент  и добавляем его в массив потомков его родителя
-            parent.children.push(map[item.code]);
-        }
-    });
-}
+    function buildHierarchy(items) {
+        // Создаем хеш-таблицу
+        items.forEach(item => {
+            map[item.code] = { 
+                ...item, 
+                children: []
+            };
+        });
+    
+        // Строим иерархию
+        items.forEach(item => {
+            const parent = map[item.parent_code];
+            if (parent) {
+                parent.children.push(map[item.code]);
+            }
+        });
+    
+        // Возвращаем корневые элементы
+        return Object.values(map).filter(item => !item.parent_code);
+    }
+    
+
 
 
 function searchOkved(query) {
@@ -139,186 +139,81 @@ function clearResults() {
 }
 
 
-///===========================поиск по словам
-function displayResultsW(itemsDictionary) {
-    const resultsDiv = document.getElementById("results");
-    resultsDiv.innerHTML = "";
-    
-    if (!itemsDictionary || Object.keys(itemsDictionary).length === 0) {
-        resultsDiv.innerHTML = "<p>No results</p>";
-        return;
-    }
-
-    const ul = document.createElement("ul");
-    
-    const allItems = Object.values(itemsDictionary);
-
-    const topLevelItems = allItems;
-    for (const item of topLevelItems) {
-        addItemToUl(ul, item, itemsDictionary);
-    }
-    resultsDiv.appendChild(ul);
-    // Перебираем все элементы и строим дерево результатов
-    // Object.values(itemsDictionary).forEach(item => {
-    //     if (!item.parent_code || !itemsDictionary[item.parent_code]) {
-    //         // Если элемент является корневым, добавляем его в список
-    //         addResultItemToUl(ul, item, itemsDictionary);
-    //     }
-    // });
-    
-    // // Добавляем список в элемент для отображения результатов
-    // resultsDiv.appendChild(ul);
-}
-
-function addItemToUl(ul, item, results, level = 0) {
-    const li = document.createElement("li");
-    li.innerHTML = `${item.code}: ${item.markedName || item.name}`;
-    li.classList.add('main-li');
-    ul.appendChild(li);
-}
-
-
-// // Рекурсивная функция для добавления элемента в список результатов
-// function addResultItemToUl(ul, item, itemsDictionary) {
-//     const li = document.createElement("li");
-//     li.innerHTML = `${item.code}: ${item.markedName || item.name}`;
-//     li.classList.add('main-li');
-    
-//     // Проверяем, есть ли у элемента потомки среди результатов
-//     const children = Object.values(itemsDictionary).filter(child => child.parent_code === item.code);
-    
-//     if (children.length > 0) {
-//         const childUl = document.createElement("ul");
-//         childUl.classList.add('child-ul');
-//         children.forEach(child => addResultItemToUl(childUl, child, itemsDictionary));
-//         li.appendChild(childUl);
-//     }
-    
-//     ul.appendChild(li);
-// }
-
-
- 
-// function searchOkvedByWord(query) {
-//     const results = {};
-//     if (!query) return results;
-
-//     function traverse(item) {
-//         if (item.name.toLowerCase().includes(query.toLowerCase())) {
-//             const resultItem = { ...item };
-//             resultItem.markedName = markMatchedText(item.name, query);
-//             results[item.code] = resultItem;
-//         }
-//          if (item.children){
-//              item.children.forEach(child => traverse(child));
-//          }
-//     }
-
-//     Object.values(map).filter(item => !item.parent_code).forEach(item => traverse(item));
-
-//     return results;
-// }
-// function searchOkvedByWord(query) {
-//     const results = {};
-    
-//     if (!query) return results;
-
-//     // Рекурсивная функция для поиска совпадений в элементе и его потомках
-//     function searchInTree(item) {
-//         if (item.name.toLowerCase().includes(query.toLowerCase())) {
-//             const resultItem = { ...item };
-//             resultItem.markedName = markMatchedText(item.name, query);
-//             results[item.code] = resultItem;
-//         }
-        
-//         if (item.children) {
-//             item.children.forEach(child => searchInTree(child));
-//         }
-//     }
-
-//     // Обходим дерево элементов
-//     Object.values(map).forEach(item => {
-//         if (!item.parent_code) { // Если элемент является корневым
-//             searchInTree(item);
-//         }
-//     });
-    
-//     return results;
-// }
-// function searchOkvedByWord(query) {
-//     const results = {};
-    
-//     if (!query) return results;
-
-//     // Рекурсивная функция для поиска совпадений в элементе и его потомках
-//     function searchInTree(item) {
-//         if (item.name.toLowerCase().includes(query.toLowerCase())) {
-//             const resultItem = { ...item };
-//             resultItem.markedName = markMatchedText(item.name, query);
-//             results[item.code] = resultItem;
-//         }
-        
-//         if (item.children) {
-//             item.children.forEach(child => searchInTree(child));
-//         }
-//     }
-
-//     // Обходим дерево элементов
-//     Object.values(map).forEach(item => {
-//         if (!item.parent_code) { // Если элемент является корневым
-//             searchInTree(item);
-//         } else {
-//             // Если элемент не корневой, но его родитель уже не обрабатывается,
-//             // добавляем его в результаты, если он содержит совпадение
-//             if (item.name.toLowerCase().includes(query.toLowerCase())) {
-//                 const resultItem = { ...item };
-//                 resultItem.markedName = markMatchedText(item.name, query);
-//                 results[item.code] = resultItem;
-//             }
-//         }
-//     });
-    
-//     return results;
-// }
-
-
-
+// Поиск по слову
+// Поиск по слову
 function searchOkvedByWord(query) {
-    const results = {};
+    const results = []; // Массив для хранения результатов поиска
     
-    if (!query) return results;
+    if (!query) return results; // Если запрос пустой, возвращаем пустой массив
 
-    // Рекурсивная функция для поиска совпадений в элементе и его потомках
-    function searchInTree(item) {
+    // Рекурсивная функция для поиска и построения иерархии
+    const searchInTree = (item, parent = null) => {
+        let matchFound = false;
+        let resultItem = null;
+
         if (item.name.toLowerCase().includes(query.toLowerCase())) {
-            const resultItem = { ...item };
+            resultItem = { ...item, children: [] };
             resultItem.markedName = markMatchedText(item.name, query);
-            results[item.code] = resultItem;
+            matchFound = true;
+        } else if (item.children) {
+            resultItem = { ...item, children: [] };
         }
-        
-        if (item.children) {
-            item.children.forEach(child => searchInTree(child));
-        }
-    }
 
-    // Обходим дерево элементов
-    Object.values(map).forEach(item => {
-        if (!item.parent_code) { // Если элемент является корневым
-            searchInTree(item);
+        if (resultItem) {
+          if (parent) {
+              parent.children.push(resultItem);
+          } else {
+              results.push(resultItem);
+          }
+  
+          if (item.children) {
+              item.children.forEach(child => {
+                  searchInTree(child, resultItem);
+              });
+          }
         }
+
+        return matchFound;
+    };
+    Object.values(map).filter(item => !item.parent_code).forEach(rootItem => {
+        searchInTree(rootItem);
     });
-    
     return results;
 }
 
-
+// Подсветка совпадений в названии элемента
 function markMatchedText(text, query) {  
-    const regex = new RegExp(query, "giu");
+    // Экранируем специальные символы в запросе
+    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escapedQuery})`, "giu");    
     return text.replace(regex, (match) => `<mark>${match}</mark>`);
 }
-clearResults();
+
+// Отображение результатов поиска по слову
+function displaySearchResultsW(results) {
+  const resultsDiv = document.getElementById('results');
+  resultsDiv.innerHTML = ''; 
+  if (results.length === 0) {
+    resultsDiv.textContent = 'Ничего не найдено.';
+    return;
+  }
+  const ul = document.createElement('ul');
+  const addSearchItemToUlW = (item) => {
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="code">${item.code}</span>: ${item.markedName || item.name}`;
+    ul.appendChild(li);
+    if (item.children) {
+      const childUl = document.createElement('ul');
+      item.children.forEach(child => addSearchItemToUlW(child));
+      li.appendChild(childUl);
+    }
+  };
+  results.forEach(item => addSearchItemToUlW(item));
+  resultsDiv.appendChild(ul);
+}
+
 const okvedName = document.getElementById("okvedName");
 okvedName.addEventListener("input", () => {    
-    const query = okvedName.value.trim();    
-    displayResultsW(searchOkvedByWord(query));
+    const query = okvedName.value.trim();
+    displaySearchResultsW(searchOkvedByWord(query));
 })
