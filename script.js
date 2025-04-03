@@ -147,33 +147,36 @@ function searchOkvedByWord(query) {
     if (!query) return results; // Если запрос пустой, возвращаем пустой массив
 
     // Рекурсивная функция для поиска и построения иерархии
-    const searchInTree = (item, parent = null) => {
-        let matchFound = false;
-        let resultItem = null;
-
-        if (item.name.toLowerCase().includes(query.toLowerCase())) {
-            resultItem = { ...item, children: [] };
-            resultItem.markedName = markMatchedText(item.name, query);
-            matchFound = true;
-        } else if (item.children) {
-            resultItem = { ...item, children: [] };
+    function searchInTree(item, parent) {
+        let currentItemMatches = item.name.toLowerCase().includes(query.toLowerCase());
+        let newItem = { ...item, children: [] };
+        
+        if (currentItemMatches) {
+            newItem.markedName = markMatchedText(item.name, query);
+        }
+        if (item.children) {
+            item.children.forEach(child => {
+                if(searchInTree(child, newItem)){
+                    currentItemMatches = true;
+                }
+            });
+        }
+        
+        if (currentItemMatches) {
+            if(newItem.children.length === 0 && !newItem.markedName){
+                return false;
+            }
+            if (parent) {
+                parent.children.push(newItem);
+            }
+            else {
+                results.push(newItem);
+            }
+            return true;
+        } else {
+            return false;
         }
 
-        if (resultItem) {
-          if (parent) {
-              parent.children.push(resultItem);
-          } else {
-              results.push(resultItem);
-          }
-  
-          if (item.children) {
-              item.children.forEach(child => {
-                  searchInTree(child, resultItem);
-              });
-          }
-        }
-
-        return matchFound;
     };
     Object.values(map).filter(item => !item.parent_code).forEach(rootItem => {
         searchInTree(rootItem);
