@@ -151,22 +151,50 @@ function displayResultsW(itemsDictionary) {
 
     const ul = document.createElement("ul");
     
-    const allItems = Object.values(itemsDictionary);
+    // const allItems = Object.values(itemsDictionary);
 
+    // const topLevelItems = allItems;
+    // for (const item of topLevelItems) {
+    //     addItemToUl(ul, item, itemsDictionary);
+    // }
+    // resultsDiv.appendChild(ul);
+    // Перебираем все элементы и строим дерево результатов
+    Object.values(itemsDictionary).forEach(item => {
+        if (!item.parent_code || !itemsDictionary[item.parent_code]) {
+            // Если элемент является корневым, добавляем его в список
+            addResultItemToUl(ul, item, itemsDictionary);
+        }
+    });
     
-    const topLevelItems = allItems;
-    for (const item of topLevelItems) {
-        addItemToUl(ul, item);
-    }
+    // Добавляем список в элемент для отображения результатов
     resultsDiv.appendChild(ul);
 }
 
-function addItemToUl(ul, item) {
+function addItemToUl(ul, item, results, level = 0) {
     const li = document.createElement("li");
     li.innerHTML = `${item.code}: ${item.markedName || item.name}`;
     li.classList.add('main-li');
     ul.appendChild(li);
 }
+// Рекурсивная функция для добавления элемента в список результатов
+function addResultItemToUl(ul, item, itemsDictionary) {
+    const li = document.createElement("li");
+    li.innerHTML = `${item.code}: ${item.markedName || item.name}`;
+    li.classList.add('main-li');
+    
+    // Проверяем, есть ли у элемента потомки среди результатов
+    const children = Object.values(itemsDictionary).filter(child => child.parent_code === item.code);
+    
+    if (children.length > 0) {
+        const childUl = document.createElement("ul");
+        childUl.classList.add('child-ul');
+        children.forEach(child => addResultItemToUl(childUl, child, itemsDictionary));
+        li.appendChild(childUl);
+    }
+    
+    ul.appendChild(li);
+}
+
 
  
 function searchOkvedByWord(query) {
@@ -184,7 +212,6 @@ function searchOkvedByWord(query) {
          }
     }
 
-    // Start traversal with top-level items.
     Object.values(map).filter(item => !item.parent_code).forEach(item => traverse(item));
 
     return results;
