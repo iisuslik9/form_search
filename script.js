@@ -151,23 +151,23 @@ function displayResultsW(itemsDictionary) {
 
     const ul = document.createElement("ul");
     
-    // const allItems = Object.values(itemsDictionary);
+    const allItems = Object.values(itemsDictionary);
 
-    // const topLevelItems = allItems;
-    // for (const item of topLevelItems) {
-    //     addItemToUl(ul, item, itemsDictionary);
-    // }
-    // resultsDiv.appendChild(ul);
-    // Перебираем все элементы и строим дерево результатов
-    Object.values(itemsDictionary).forEach(item => {
-        if (!item.parent_code || !itemsDictionary[item.parent_code]) {
-            // Если элемент является корневым, добавляем его в список
-            addResultItemToUl(ul, item, itemsDictionary);
-        }
-    });
-    
-    // Добавляем список в элемент для отображения результатов
+    const topLevelItems = allItems;
+    for (const item of topLevelItems) {
+        addItemToUl(ul, item, itemsDictionary);
+    }
     resultsDiv.appendChild(ul);
+    // Перебираем все элементы и строим дерево результатов
+    // Object.values(itemsDictionary).forEach(item => {
+    //     if (!item.parent_code || !itemsDictionary[item.parent_code]) {
+    //         // Если элемент является корневым, добавляем его в список
+    //         addResultItemToUl(ul, item, itemsDictionary);
+    //     }
+    // });
+    
+    // // Добавляем список в элемент для отображения результатов
+    // resultsDiv.appendChild(ul);
 }
 
 function addItemToUl(ul, item, results, level = 0) {
@@ -176,44 +176,138 @@ function addItemToUl(ul, item, results, level = 0) {
     li.classList.add('main-li');
     ul.appendChild(li);
 }
-// Рекурсивная функция для добавления элемента в список результатов
-function addResultItemToUl(ul, item, itemsDictionary) {
-    const li = document.createElement("li");
-    li.innerHTML = `${item.code}: ${item.markedName || item.name}`;
-    li.classList.add('main-li');
+
+
+// // Рекурсивная функция для добавления элемента в список результатов
+// function addResultItemToUl(ul, item, itemsDictionary) {
+//     const li = document.createElement("li");
+//     li.innerHTML = `${item.code}: ${item.markedName || item.name}`;
+//     li.classList.add('main-li');
     
-    // Проверяем, есть ли у элемента потомки среди результатов
-    const children = Object.values(itemsDictionary).filter(child => child.parent_code === item.code);
+//     // Проверяем, есть ли у элемента потомки среди результатов
+//     const children = Object.values(itemsDictionary).filter(child => child.parent_code === item.code);
     
-    if (children.length > 0) {
-        const childUl = document.createElement("ul");
-        childUl.classList.add('child-ul');
-        children.forEach(child => addResultItemToUl(childUl, child, itemsDictionary));
-        li.appendChild(childUl);
-    }
+//     if (children.length > 0) {
+//         const childUl = document.createElement("ul");
+//         childUl.classList.add('child-ul');
+//         children.forEach(child => addResultItemToUl(childUl, child, itemsDictionary));
+//         li.appendChild(childUl);
+//     }
     
-    ul.appendChild(li);
-}
+//     ul.appendChild(li);
+// }
 
 
  
+// function searchOkvedByWord(query) {
+//     const results = {};
+//     if (!query) return results;
+
+//     function traverse(item) {
+//         if (item.name.toLowerCase().includes(query.toLowerCase())) {
+//             const resultItem = { ...item };
+//             resultItem.markedName = markMatchedText(item.name, query);
+//             results[item.code] = resultItem;
+//         }
+//          if (item.children){
+//              item.children.forEach(child => traverse(child));
+//          }
+//     }
+
+//     Object.values(map).filter(item => !item.parent_code).forEach(item => traverse(item));
+
+//     return results;
+// }
+// function searchOkvedByWord(query) {
+//     const results = {};
+    
+//     if (!query) return results;
+
+//     // Рекурсивная функция для поиска совпадений в элементе и его потомках
+//     function searchInTree(item) {
+//         if (item.name.toLowerCase().includes(query.toLowerCase())) {
+//             const resultItem = { ...item };
+//             resultItem.markedName = markMatchedText(item.name, query);
+//             results[item.code] = resultItem;
+//         }
+        
+//         if (item.children) {
+//             item.children.forEach(child => searchInTree(child));
+//         }
+//     }
+
+//     // Обходим дерево элементов
+//     Object.values(map).forEach(item => {
+//         if (!item.parent_code) { // Если элемент является корневым
+//             searchInTree(item);
+//         }
+//     });
+    
+//     return results;
+// }
+// function searchOkvedByWord(query) {
+//     const results = {};
+    
+//     if (!query) return results;
+
+//     // Рекурсивная функция для поиска совпадений в элементе и его потомках
+//     function searchInTree(item) {
+//         if (item.name.toLowerCase().includes(query.toLowerCase())) {
+//             const resultItem = { ...item };
+//             resultItem.markedName = markMatchedText(item.name, query);
+//             results[item.code] = resultItem;
+//         }
+        
+//         if (item.children) {
+//             item.children.forEach(child => searchInTree(child));
+//         }
+//     }
+
+//     // Обходим дерево элементов
+//     Object.values(map).forEach(item => {
+//         if (!item.parent_code) { // Если элемент является корневым
+//             searchInTree(item);
+//         } else {
+//             // Если элемент не корневой, но его родитель уже не обрабатывается,
+//             // добавляем его в результаты, если он содержит совпадение
+//             if (item.name.toLowerCase().includes(query.toLowerCase())) {
+//                 const resultItem = { ...item };
+//                 resultItem.markedName = markMatchedText(item.name, query);
+//                 results[item.code] = resultItem;
+//             }
+//         }
+//     });
+    
+//     return results;
+// }
+
+
+
 function searchOkvedByWord(query) {
     const results = {};
+    
     if (!query) return results;
 
-    function traverse(item) {
+    // Рекурсивная функция для поиска совпадений в элементе и его потомках
+    function searchInTree(item) {
         if (item.name.toLowerCase().includes(query.toLowerCase())) {
             const resultItem = { ...item };
             resultItem.markedName = markMatchedText(item.name, query);
             results[item.code] = resultItem;
         }
-         if (item.children){
-             item.children.forEach(child => traverse(child));
-         }
+        
+        if (item.children) {
+            item.children.forEach(child => searchInTree(child));
+        }
     }
 
-    Object.values(map).filter(item => !item.parent_code).forEach(item => traverse(item));
-
+    // Обходим дерево элементов
+    Object.values(map).forEach(item => {
+        if (!item.parent_code) { // Если элемент является корневым
+            searchInTree(item);
+        }
+    });
+    
     return results;
 }
 
