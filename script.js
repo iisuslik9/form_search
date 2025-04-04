@@ -20,44 +20,42 @@ fetch('okved_2.json')
     })
     .catch(error => console.error('Error loading JSON:', error));
 
-    function buildHierarchy(items) {
-        // Создаем хеш-таблицу
-        items.forEach(item => {
-            map[item.code] = { 
-                ...item, 
-                children: []
-            };
-        });
+function buildHierarchy(items) {
+    // Создаем хеш-таблицу
+    items.forEach(item => {
+        map[item.code] = { 
+            ...item, 
+            children: []
+        };
+    });
     
-        // Строим иерархию
-        items.forEach(item => {
-            const parent = map[item.parent_code];
-            if (parent) {
-                parent.children.push(map[item.code]);
-            }
-        });
+    items.forEach(item => {
+        const parent = map[item.parent_code];
+        if (parent) {
+            parent.children.push(map[item.code]);
+        }
+    });
     
         // Возвращаем корневые элементы
-        return Object.values(map).filter(item => !item.parent_code);
+    return Object.values(map).filter(item => !item.parent_code);
     }
     
 
 
 
 function searchOkved(query) {
-    const results = {}; //to store results
-
-    // Iterate through all codes in the map.
+    const results = {}; 
+    // foreqach  codes in the map
     Object.keys(map).forEach(code => {
-        // Check if the code starts with the search query.
+        //  if the code starts with the search query
         if (code.startsWith(query)) {
             const item = map[code]; // Get the item from the map.
 
-            // If item exists and not yet added to results, add it.
+            // not yet added to results
             if (item && !results[item.code]) { 
                 results[item.code] = item;
             }
-            // Recursively add all children of this item to the results.
+            // recurs add all children to the results.
             addAllChildren(item, results);
         }
     });
@@ -67,13 +65,13 @@ function searchOkved(query) {
 
 // Recursive function to add all children of an item to the results.
 function addAllChildren(item, results) {
-    if (!item || !item.children) return; // Base case: item has no children.
+    if (!item || !item.children) return; // has no children.
 
     item.children.forEach(child => {
         if (!results[child.code]) {
-            results[child.code] = child; // Add the child to the results.
+            results[child.code] = child; 
         }
-        addAllChildren(child, results); // Recursively check for more children.
+        addAllChildren(child, results);
     });
 }
 
@@ -95,7 +93,6 @@ function displayResults(results) {
     resultsDiv.appendChild(ul);
 }
 
-// Добавление элемента в список для поиска по коду
 function addCodeItemToUl(ul, item, results, level = 0) {
     const li = document.createElement("li");
     li.style.marginLeft = `${level * 20}px`;
@@ -139,14 +136,12 @@ function clearResults() {
 }
 
 
-// Поиск по слову
-// Поиск по слову
+//================== Поиск по слову
 function searchOkvedByWord(query) {
-    const results = []; // Массив для хранения результатов поиска
+    const results = []; 
     
-    if (!query) return results; // Если запрос пустой, возвращаем пустой массив
-
-    // Рекурсивная функция для поиска и построения иерархии
+    if (!query) return results; 
+    
     function searchInTree(item, level = 0) {
         if (item.name.toLowerCase().includes(query.toLowerCase())) {
             const resultItem = { ...item, level: level };
@@ -165,7 +160,6 @@ function searchOkvedByWord(query) {
     return results;
 }
 
-// Подсветка совпадений в названии элемента
 function markMatchedText(text, query) {
     // Экранируем специальные символы в запросе
     const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -173,14 +167,13 @@ function markMatchedText(text, query) {
     return text.replace(regex, (match) => `<mark>${match}</mark>`);
 }
 
-// Отображение результатов поиска по слову
 function displaySearchResultsW(results) {
-    const resultsDiv = document.getElementById('results');
-    resultsDiv.innerHTML = ''; // Clear previous results
-    if (results.length === 0) {resultsDiv.textContent = 'Ничего не найдено.'; return;}
-    const ul = document.createElement('ul');
+    const resultsDiv = document.getElementById("results");
+    resultsDiv.innerHTML = ''; 
+    if (results.length === 0) {resultsDiv.textContent = "No results"; return;}
+    const ul = document.createElement("ul");
     results.forEach(item => {        
-        const li = document.createElement('li');
+        const li = document.createElement("li");
         li.style.marginLeft = `${item.level * 20}px`;
         li.innerHTML = `<span class="code">${item.code}</span>: ${item.markedName || item.name}`;
         ul.appendChild(li);
@@ -192,3 +185,5 @@ okvedName.addEventListener("input", () => {
     const query = okvedName.value.trim();
     displaySearchResultsW(searchOkvedByWord(query));
 })
+
+
