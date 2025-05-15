@@ -189,13 +189,21 @@ okvedName.addEventListener("input", () => {
 
 const okvedCode = document.getElementById('okvedCode');
 const addCodeBtn = document.getElementById('addCodeBtn');
+const resultsDiv = document.getElementById('results');
 
 inputField.addEventListener('input', function() {
     const value = this.value.replace(/[^0-9]/g, ''); 
     const formattedValue = value.match(/.{1,2}/g)?.join('.') || ''; 
     this.value = formattedValue;
 
-    // Проверяем, что введено ровно 6 цифр в формате XX.XX.XX
     const fullCodePattern = /^\d{2}\.\d{2}\.\d{2}$/;
-    addCodeBtn.disabled = !fullCodePattern.test(formattedValue);
+    const isValidFormat = fullCodePattern.test(formattedValue);
+
+    // Проверяем, что в results нет текста "No results"
+    const noResultsText = "No results";
+    const hasNoResults = resultsDiv.textContent.trim() === noResultsText;
+
+    // Кнопка активна, если формат правильный и есть результаты (нет "No results")
+    addCodeBtn.disabled = !(isValidFormat && !hasNoResults);
 });
+
