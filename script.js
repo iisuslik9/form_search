@@ -190,13 +190,16 @@ okvedName.addEventListener("input", () => {
 const okvedCode = document.getElementById('okvedCode');
 const addCodeBtn = document.getElementById('addCodeBtn');
 const resultsDiv = document.getElementById('results');
-
+const chartCanvas = document.getElementById('chart').getContext('2d');
 inputField.addEventListener('input', function() {
     const value = this.value.replace(/[^0-9]/g, ''); 
     const formattedValue = value.match(/.{1,2}/g)?.join('.') || ''; 
     this.value = formattedValue;
 
-    const fullCodePattern = /^\d{2}\.\d{2}\.\d{2}$/;
+    //const fullCodePattern = /^\d{2}\.\d{2}\.\d{2}$/;
+    //const fullCodePattern = /^\d{2}(\.\d{2}(\.\d{2})?)?$/;
+    const fullCodePattern = /^\d{2}/;
+
     const isValidFormat = fullCodePattern.test(formattedValue);
 
     // Проверяем, что в results нет текста "No results"
@@ -205,5 +208,194 @@ inputField.addEventListener('input', function() {
 
     // Кнопка активна, если формат правильный и есть результаты (нет "No results")
     addCodeBtn.disabled = !(isValidFormat && !hasNoResults);
+    //addCodeBtn.disabled = !(!hasNoResults);
 });
 
+const savedCodesStats = {};
+
+// Функция сохранения в localStorage
+function saveStatsToLocalStorage() {
+    localStorage.setItem('savedCodesStats', JSON.stringify(savedCodesStats));
+}
+
+// Функция загрузки из localStorage
+function loadStatsFromLocalStorage() {
+    const data = localStorage.getItem('savedCodesStats');
+    if (data) {
+        Object.assign(savedCodesStats, JSON.parse(data));
+    }
+}
+
+// При загрузке страницы подгружаем данные
+loadStatsFromLocalStorage();
+
+// При сохранении кода увеличиваем счётчик и сохраняем
+addCodeBtn.addEventListener('click', () => {
+    const code = inputField.value;
+
+    if (savedCodesStats[code]) {
+        savedCodesStats[code]++;
+    } else {
+        savedCodesStats[code] = 1;
+    }
+
+    saveStatsToLocalStorage();
+
+    alert(`Код ${code} сохранён! Количество сохранений: ${savedCodesStats[code]}`);
+
+    inputField.value = '';
+    addCodeBtn.disabled = true;
+
+    // Обновляем диаграмму
+    const counts = countSectionsFromStats(savedCodesStats);
+    renderChart(counts);
+  });
+
+  // Инициализация при загрузке страницы
+  window.addEventListener('DOMContentLoaded', () => {
+    loadStatsFromLocalStorage();
+
+    // Можно здесь обновить результаты, если нужно
+    resultsDiv.textContent = ''; // или ваша логика отображения результатов
+
+    // Отрисовать диаграмму с текущими данными
+    const counts = countSectionsFromStats(savedCodesStats);
+    renderChart(counts);
+});
+
+// Объект для подсчёта сохранённых кодов по разделам
+const countsBySection = {
+    A: 0, B: 0, C: 0, D: 0, E: 0, F: 0, G: 0, H: 0, I: 0, J: 0,
+    K: 0, L: 0, M: 0, N: 0, O: 0, P: 0, Q: 0, R: 0, S: 0, T: 0, U: 0
+  };
+
+let chartInstance = null;
+  
+  // Функция для определения раздела по коду ОКВЭД
+  function getSectionByCode(code) {
+    // Убираем точки, берем первые две цифры
+    const digits = code.replace(/\./g, '').slice(0, 2);
+    const num = parseInt(digits, 10);
+  
+    if (num >= 1 && num <= 3) return 'A';
+    if (num >= 5 && num <= 9) return 'B';
+    if (num >= 10 && num <= 33) return 'C';
+    if (num === 35) return 'D';
+    if (num >= 36 && num <= 39) return 'E';  
+    if (num >= 41 && num <= 43) return 'F';
+    if (num >= 45 && num <= 47) return 'G';
+    if (num >= 49 && num <= 53) return 'H';
+    if (num >= 55 && num <= 56) return 'I';
+    if (num >= 58 && num <= 63) return 'J';
+    if (num >= 64 && num <= 66) return 'K';
+    if (num === 68) return 'L';
+    if (num >= 69 && num <= 75) return 'M';
+    if (num >= 77 && num <= 82) return 'N';
+    if (num === 84) return 'O';
+    if (num === 85) return 'P';
+    if (num >= 86 && num <= 88) return 'Q';
+    if (num >= 90 && num <= 93) return 'R';
+    if (num >= 94 && num <= 96) return 'S';
+    if (num >= 97 && num <= 98) return 'T';
+    if (num === 99) return 'U';
+  
+    return null; // Неизвестный раздел
+  }
+  
+// Подсчёт количества сохранённых кодов по разделам
+function countSectionsFromStats(stats) {
+    Object.keys(countsBySection).forEach(key => countsBySection[key] = 0);
+
+    for (const code in stats) {
+      if (!stats.hasOwnProperty(code)) continue;
+      const section = getSectionByCode(code);
+      if (section) {
+        countsBySection[section] += stats[code];
+      }
+    }
+
+    return countsBySection;
+  }
+   // Подготовка данных для диаграммы кодов выбранного раздела
+   function getCodesDataForSection(section) {
+    const codes = [];
+    const counts = [];
+    for (const code in savedCodesStats) {
+      if (getSectionByCode(code) === section) {
+        codes.push(code);
+        counts.push(savedCodesStats[code]);
+      }
+    }
+    return { codes, counts };
+  }
+  const codesCtx = document.getElementById('codesChart').getContext('2d');
+
+
+  let codesChart = null;
+  // Отрисовка диаграммы с помощью Chart.js
+  function renderChart(counts) {
+    const labels = Object.keys(counts);
+    const data = Object.values(counts);
+
+    if (chartInstance) {
+      chartInstance.data.labels = labels;
+      chartInstance.data.datasets[0].data = data;
+      chartInstance.update();
+    } else {
+      chartInstance = new Chart(chartCanvas, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Количество сохранённых кодов',
+            data: data,
+            backgroundColor: 'rgba(235, 54, 208, 0.7)'
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+              stepSize: 1,
+              ticks: {
+                precision: 0
+              }
+            }
+          },
+          onClick: (evt, elements) => onChartClick(evt, elements)
+        }
+      });
+    }
+  }
+
+  // Элемент для вывода кодов по разделу
+const codesListDiv = document.getElementById('codesList'); // создайте в HTML <div id="codesList"></div>
+
+// Массив разделов (метки диаграммы)
+const sections = Object.keys(countsBySection);
+
+// Функция для получения кодов по разделу
+function getCodesBySection(section) {
+  return Object.keys(savedCodesStats).filter(code => getSectionByCode(code) === section);
+}
+
+// Обработчик клика по диаграмме
+function onChartClick(evt, elements) {
+  if (!elements.length) return;
+
+  // Получаем индекс кликнутого столбца
+  const index = elements[0].index;
+  const section = sections[index];
+
+  // Получаем коды для раздела
+  const codes = getCodesBySection(section);
+
+  // Формируем вывод
+  if (codes.length === 0) {
+    codesListDiv.innerHTML = `<p>Для раздела <strong>${section}</strong> коды не найдены.</p>`;
+  } else {
+    codesListDiv.innerHTML = `<p>Коды для раздела <strong>${section}</strong>:</p><ul>` +
+      codes.map(code => `<li>${code} (сохранений: ${savedCodesStats[code]})</li>`).join('') +
+      `</ul>`;
+  }
+}

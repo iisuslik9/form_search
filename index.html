@@ -21,11 +21,19 @@
     <h1>ОКВЭД</h1>
     <label for="okvedCode">код:</label>
     <input type="text" id="okvedCode" name="okvedCode" placeholder="введите оквэд код (например, 01.11.1)" maxlength="8">
+    <button id="addCodeBtn" disabled>add code</button>
     <label for="okvedCode">название:</label>
     <input type="text" id="okvedName" name="okvedName" placeholder="введите название" maxlength="255">
     <div id="results"></div>
+    <div id="container"></div>
+    <div><canvas id="chart" width="800" height="400"></canvas></div>
+    <div id="codesList" style="margin-top:20px; font-family: monospace;"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script src="script.js">
     </script>
+    
 </body>
 </html>
 <!-- //TODO
@@ -33,4 +41,7 @@
 //подклассы в выпадающем списке DONE
 //подсветка найденого DONE
 //точки после двух DONE
-///01 = 1 -->
+///01 = 1 
+//включить кнопку когда текущее значение соответсвует формату XX.XX.XX
+включить кнопку add когда текущее значение соответсвует формату XX.XX.XX и код найден
+-->
