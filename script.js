@@ -186,12 +186,12 @@ okvedName.addEventListener("input", () => {
     displaySearchResultsW(searchOkvedByWord(query));
 })
 
-
+//============statistic
 const okvedCode = document.getElementById('okvedCode');
 const addCodeBtn = document.getElementById('addCodeBtn');
 const resultsDiv = document.getElementById('results');
 const chartCanvas = document.getElementById('chart').getContext('2d');
-inputField.addEventListener('input', function() {
+okvedCode.addEventListener('input', function() {
     const value = this.value.replace(/[^0-9]/g, ''); 
     const formattedValue = value.match(/.{1,2}/g)?.join('.') || ''; 
     this.value = formattedValue;
@@ -328,14 +328,16 @@ function countSectionsFromStats(stats) {
     }
     return { codes, counts };
   }
-  const codesCtx = document.getElementById('codesChart').getContext('2d');
-
+//  const codesCtx = document.getElementById('codesChart').getContext('2d');
+const codesCtx = document.getElementById('codesChart');
 
   let codesChart = null;
+  const sections = Object.keys(countsBySection);
   // Отрисовка диаграммы с помощью Chart.js
   function renderChart(counts) {
     const labels = Object.keys(counts);
     const data = Object.values(counts);
+    const total = data.reduce((sum, val) => sum + val, 0);
 
     if (chartInstance) {
       chartInstance.data.labels = labels;
@@ -358,44 +360,98 @@ function countSectionsFromStats(stats) {
               beginAtZero: true,
               stepSize: 1,
               ticks: {
-                precision: 0
-              }
+                min: 0,
+                max: 100,
+                stepSize: 20,
+                callback: function (value) {
+                  return (value / this.max * 100).toFixed(0) + '%'; // convert it to percentage
+                  },
+              },
             }
           },
-          onClick: (evt, elements) => onChartClick(evt, elements)
+          onClick: (evt, elements) => {
+            if (!elements.length) return;
+            const idx = elements[0].index;
+            const section = sections[idx];
+            renderCodesChart(section);
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                //label: ctx => `Кодов: ${ctx.parsed.y}`
+                label: ctx => {
+                    
+                    const value = ctx.parsed.y;
+                    const percent = total ? ((value / total) * 100).toFixed(1) : 0;
+                    return `Кодов: ${value} (${percent}%)`;
+                  }
+              }
+            }
+          }
+          
         }
       });
     }
   }
+ // Функция отрисовки диаграммы кодов выбранного раздела
+ function renderCodesChart(section) {
+    codesCtx.style.display = 'block';
+    const ctx = codesCtx.getContext('2d');
+    const { codes, counts } = getCodesDataForSection(section);
+    if (codesChart) codesChart.destroy();
 
-  // Элемент для вывода кодов по разделу
-const codesListDiv = document.getElementById('codesList'); // создайте в HTML <div id="codesList"></div>
-
-// Массив разделов (метки диаграммы)
-const sections = Object.keys(countsBySection);
-
-// Функция для получения кодов по разделу
-function getCodesBySection(section) {
-  return Object.keys(savedCodesStats).filter(code => getSectionByCode(code) === section);
-}
-
-// Обработчик клика по диаграмме
-function onChartClick(evt, elements) {
-  if (!elements.length) return;
-
-  // Получаем индекс кликнутого столбца
-  const index = elements[0].index;
-  const section = sections[index];
-
-  // Получаем коды для раздела
-  const codes = getCodesBySection(section);
-
-  // Формируем вывод
-  if (codes.length === 0) {
-    codesListDiv.innerHTML = `<p>Для раздела <strong>${section}</strong> коды не найдены.</p>`;
-  } else {
-    codesListDiv.innerHTML = `<p>Коды для раздела <strong>${section}</strong>:</p><ul>` +
-      codes.map(code => `<li>${code} (сохранений: ${savedCodesStats[code]})</li>`).join('') +
-      `</ul>`;
+    codesChart = new Chart(codesCtx, {
+      type: 'bar',
+      data: {
+        labels: codes.length ? codes : ['Нет кодов'],
+        datasets: [{
+          label: `Коды раздела ${section}`,
+          data: counts.length ? counts : [0],
+          backgroundColor: 'rgba(255, 159, 64, 0.7)'
+        }]
+      },
+      options: {
+        scales: {
+          y: { beginAtZero: true, stepSize: 1 }
+        },
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: ctx => `Сохранений: ${ctx.parsed.y}`
+            }
+          }
+        }
+      }
+    });
   }
-}
+//   // Элемент для вывода кодов по разделу
+// const codesListDiv = document.getElementById('codesList'); // создайте в HTML <div id="codesList"></div>
+
+// // Массив разделов (метки диаграммы)
+// const sections = Object.keys(countsBySection);
+
+// // Функция для получения кодов по разделу
+// function getCodesBySection(section) {
+//   return Object.keys(savedCodesStats).filter(code => getSectionByCode(code) === section);
+// }
+
+// // Обработчик клика по диаграмме
+// function onChartClick(evt, elements) {
+//   if (!elements.length) return;
+
+//   // Получаем индекс кликнутого столбца
+//   const index = elements[0].index;
+//   const section = sections[index];
+
+//   // Получаем коды для раздела
+//   const codes = getCodesBySection(section);
+
+//   // Формируем вывод
+//   if (codes.length === 0) {
+//     codesListDiv.innerHTML = `<p>Для раздела <strong>${section}</strong> коды не найдены.</p>`;
+//   } else {
+//     codesListDiv.innerHTML = `<p>Коды для раздела <strong>${section}</strong>:</p><ul>` +
+//       codes.map(code => `<li>${code} (сохранений: ${savedCodesStats[code]})</li>`).join('') +
+//       `</ul>`;
+//   }
+// }
