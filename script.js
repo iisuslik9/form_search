@@ -2,8 +2,8 @@
 const inputField = document.getElementById('okvedCode');
 inputField.addEventListener('input', function() {
     const value = this.value.replace(/[^0-9]/g, ''); 
-    const formattedValue = value.match(/.{1,2}/g).join('.'); 
-    
+    const parts = value.match(/.{1,2}/g); // может быть null!
+    const formattedValue = parts ? parts.join('.') : '';
     this.value = formattedValue;
 });
 

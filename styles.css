@@ -1,0 +1,16 @@
+.results {
+            margin-top: 20px;
+        }
+.okvedCode{
+    width: 40%;
+}
+.ul {
+    list-style-type:  none;
+}
+.codesList{
+    margin-top:20px; font-family: monospace;
+    
+}
+.codesChart {
+    display:none;
+}

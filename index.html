@@ -4,17 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OKVED Search</title>
-    <style>
-        #results {
-            margin-top: 20px;
-        }
-        #okvedCode{
-          width: 40%;
-        }
-        ul {
-        list-style-type:  none;
-}
-    </style>
+    <link href="styles.css" rel="stylesheet">
+
 </head>
 <body>
 
@@ -27,10 +18,10 @@
     <div id="results"></div>
     <div id="container"></div>
     <div><canvas id="chart" width="800" height="400"></canvas></div>
-    <div id="codesList" style="margin-top:20px; font-family: monospace;"></div>
+    <div id="codesList"></div>
     <div>
         <h2>Коды выбранного раздела</h2>
-        <canvas id="codesChart" style="display:none;"></canvas>
+        <canvas id="codesChart" ></canvas>
       </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
